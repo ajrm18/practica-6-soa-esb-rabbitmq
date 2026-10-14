@@ -1,0 +1,28 @@
+{
+  "name": "soa-productos-service",
+  "version": "1.0.0",
+  "description": "Servicio SOA (SOAP/WSDL) de productos que publica eventos en RabbitMQ (mini-ESB)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "probar": "node probar-cliente.js"
+  },
+  "keywords": [
+    "soa",
+    "soap",
+    "wsdl",
+    "rabbitmq",
+    "esb"
+  ],
+  "author": "Anthony Rosero",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "amqplib": "^2.2.0",
+    "express": "^5.3.0",
+    "soap": "^1.14.0"
+  }
+}

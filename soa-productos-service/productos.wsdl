@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="ProductosService"
+  targetNamespace="http://integracion-sistemas.local/productos"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:tns="http://integracion-sistemas.local/productos"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <types>
+    <xsd:schema targetNamespace="http://integracion-sistemas.local/productos">
+      <xsd:element name="ObtenerProductosRequest">
+        <xsd:complexType>
+          <xsd:sequence/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ObtenerProductosResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="productos" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </types>
+
+  <message name="ObtenerProductosInput">
+    <part name="parameters" element="tns:ObtenerProductosRequest"/>
+  </message>
+  <message name="ObtenerProductosOutput">
+    <part name="parameters" element="tns:ObtenerProductosResponse"/>
+  </message>
+
+  <portType name="ProductosPortType">
+    <operation name="ObtenerProductos">
+      <input message="tns:ObtenerProductosInput"/>
+      <output message="tns:ObtenerProductosOutput"/>
+    </operation>
+  </portType>
+
+  <binding name="ProductosBinding" type="tns:ProductosPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="ObtenerProductos">
+      <soap:operation soapAction="ObtenerProductos"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+
+  <service name="ProductosService">
+    <port name="ProductosPort" binding="tns:ProductosBinding">
+      <soap:address location="http://localhost:3000/wsdl"/>
+    </port>
+  </service>
+</definitions>
