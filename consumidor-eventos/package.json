@@ -1,0 +1,19 @@
+{
+  "name": "consumidor-eventos",
+  "version": "1.0.0",
+  "description": "Consumidor de eventos ProductoConsultado desde RabbitMQ",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Anthony Rosero",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "amqplib": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
