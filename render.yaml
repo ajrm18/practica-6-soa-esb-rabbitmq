@@ -1,0 +1,48 @@
+# Blueprint de Render: tres Web Services (plan free) desde el mismo repositorio.
+# Las variables con sync: false se piden al crear el Blueprint (no se versionan).
+services:
+  - type: web
+    name: soa-productos-service
+    runtime: node
+    plan: free
+    rootDir: soa-productos-service
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: AMQP_URL
+        sync: false
+      # URL pública del propio servicio (https://<nombre>.onrender.com). Si se deja
+      # vacía, index.js usa RENDER_EXTERNAL_URL, que Render define automáticamente.
+      - key: PUBLIC_URL
+        sync: false
+
+  - type: web
+    name: consumidor-eventos
+    runtime: node
+    plan: free
+    rootDir: consumidor-eventos
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: frontend-mvc
+    runtime: node
+    plan: free
+    rootDir: frontend-mvc
+    buildCommand: npm install && npm run build
+    startCommand: node dist/main.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # <URL del SOA>/wsdl?wsdl, por ejemplo https://soa-productos-service.onrender.com/wsdl?wsdl
+      - key: SOAP_WSDL_URL
+        sync: false
