@@ -1,14 +1,16 @@
 # Blueprint de Render: tres Web Services (plan free) desde el mismo repositorio.
 # Las variables con sync: false se piden al crear el Blueprint (no se versionan).
+# autoDeployTrigger: checksPass -> Render solo despliega si el CI de GitHub pasa.
 services:
   - type: web
     name: soa-productos-service
     runtime: node
     plan: free
     rootDir: soa-productos-service
-    buildCommand: npm install
+    buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /health
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -24,9 +26,10 @@ services:
     runtime: node
     plan: free
     rootDir: consumidor-eventos
-    buildCommand: npm install
+    buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /health
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -38,8 +41,10 @@ services:
     runtime: node
     plan: free
     rootDir: frontend-mvc
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: node dist/main.js
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: "22"

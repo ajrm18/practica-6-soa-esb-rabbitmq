@@ -2,7 +2,7 @@
 // Uso:
 //   node verificar-flujo.js                      (local)
 //   FRONTEND_URL=https://... CONSUMIDOR_URL=https://... SOA_URL=https://... node verificar-flujo.js
-// Requiere Node >= 18 (fetch nativo). Tolera el arranque en frío de Render Free
+// Requiere Node >= 22 (fetch nativo). Tolera el arranque en frío de Render Free
 // (timeouts largos y reintentos).
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:3001").replace(/\/$/, "");
@@ -12,6 +12,7 @@ const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 90000);
 const REINTENTOS = Number(process.env.REINTENTOS || 3);
 const ESPERA_EVENTO_MS = 2000;
 const PRODUCTOS = ["Teclado mecánico", "Mouse inalámbrico", "Monitor 24&quot;"];
+const PRECIOS = ["$45.90", "$19.50", "$129.99"];
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const resultados = [];
@@ -76,9 +77,9 @@ async function main() {
   // 2. El frontend muestra los 3 productos.
   try {
     const { cuerpo, ms } = await pedir(`${FRONTEND_URL}/`);
-    const faltantes = PRODUCTOS.filter((p) => !cuerpo.includes(p));
+    const faltantes = [...PRODUCTOS, ...PRECIOS].filter((p) => !cuerpo.includes(p));
     reportar(
-      "2. El frontend muestra los 3 productos",
+      "2. El frontend muestra los 3 productos (precios con 2 decimales)",
       faltantes.length === 0,
       faltantes.length ? `faltan: ${faltantes.join(", ")}` : `${ms} ms`,
     );

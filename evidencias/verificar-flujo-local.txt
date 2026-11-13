@@ -1,13 +1,13 @@
-Fecha: 2026-10-14T16:00:41.212Z
+Fecha: 2026-11-13T18:42:46.694Z
 Frontend:   http://localhost:3001
 SOA:        http://localhost:3000
 Consumidor: http://localhost:3002
 
-  SOA /health -> {"status":"ok"} en 251 ms
-  Consumidor /health -> {"status":"ok","rabbitmq":"conectado"} en 8 ms
+  SOA /health -> {"status":"ok"} en 244 ms
+  Consumidor /health -> {"status":"ok","rabbitmq":"conectado"} en 7 ms
 
-PASS - 1. Leer eventos procesados por el consumidor (totalRecibidos=4)
-PASS - 2. El frontend muestra los 3 productos (163 ms)
-PASS - 3. El consumidor recibió un evento nuevo (antes=4 después=5)
+PASS - 1. Leer eventos procesados por el consumidor (totalRecibidos=0)
+PASS - 2. El frontend muestra los 3 productos (precios con 2 decimales) (766 ms)
+PASS - 3. El consumidor recibió un evento nuevo (antes=0 después=1)
 
 Resultado: PASS (3/3)

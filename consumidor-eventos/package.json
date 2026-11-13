@@ -4,7 +4,9 @@
   "description": "Consumidor de eventos ProductoConsultado desde RabbitMQ",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node --test",
+    "lint": "oxlint --deny-warnings ."
   },
   "keywords": [],
   "author": "Anthony Rosero",
@@ -14,6 +16,9 @@
     "amqplib": "^2.2.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "oxlint": "^1.88.0"
   }
 }

@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  proyectos:
+    name: ${{ matrix.proyecto }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        proyecto: [soa-productos-service, consumidor-eventos, frontend-mvc]
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports: ["5672:5672"]
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: ${{ matrix.proyecto }}
+    env:
+      TEST_AMQP_URL: amqp://localhost
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ${{ matrix.proyecto }}/package-lock.json
+      - run: npm ci
+      - name: Sintaxis (node -c)
+        if: matrix.proyecto != 'frontend-mvc'
+        run: for f in $(git ls-files '*.js'); do node -c "$f"; done
+      - run: npm run lint
+      - name: Build
+        if: matrix.proyecto == 'frontend-mvc'
+        run: npm run build
+      - run: npm test
+      - name: Pruebas e2e
+        if: matrix.proyecto == 'frontend-mvc'
+        run: npm run test:e2e
+
+  flujo:
+    name: verificar-flujo (E2E con RabbitMQ)
+    needs: proyectos
+    runs-on: ubuntu-24.04
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports: ["5672:5672"]
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Instalar y compilar
+        run: |
+          (cd soa-productos-service && npm ci --omit=dev)
+          (cd consumidor-eventos && npm ci --omit=dev)
+          (cd frontend-mvc && npm ci && npm run build)
+      - name: Levantar los 3 servicios
+        run: |
+          (cd soa-productos-service && nohup npm start > ../soa.log 2>&1 &)
+          (cd consumidor-eventos && nohup npm start > ../consumidor.log 2>&1 &)
+          (cd frontend-mvc && nohup node dist/main.js > ../frontend.log 2>&1 &)
+          for url in http://localhost:3000/health http://localhost:3002/health http://localhost:3001/health; do
+            for i in $(seq 1 30); do curl -sf "$url" && break; sleep 1; done
+          done
+          for i in $(seq 1 30); do curl -s http://localhost:3002/health | grep -q '"conectado"' && break; sleep 1; done
+      - run: node verificar-flujo.js
+        env:
+          TIMEOUT_MS: "15000"
+      - name: Logs
+        if: always()
+        run: tail -n 50 soa.log consumidor.log frontend.log

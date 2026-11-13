@@ -8,13 +8,13 @@ const {
   crearEventoProductoConsultado,
 } = require("./evento-publisher");
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 // RENDER_EXTERNAL_URL la define Render automáticamente si no se configura PUBLIC_URL.
-const PUBLIC_URL =
+const PUBLIC_URL = (
   process.env.PUBLIC_URL ||
   process.env.RENDER_EXTERNAL_URL ||
-  `http://localhost:${PORT}`;
+  `http://localhost:${PORT}`
+).replace(/\/$/, "");
 
 // soap:address debe apuntar a la URL pública cuando el servicio corre en la nube.
 const wsdl = fs
@@ -38,11 +38,33 @@ const servicio = {
   },
 };
 
+const app = express();
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "no-referrer");
+  next();
+});
+
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.listen(PORT, () => {
-  soap.listen(app, "/wsdl", servicio, wsdl);
-  console.log(`Servicio SOA escuchando en ${PUBLIC_URL}/wsdl?wsdl`);
-});
+function iniciar(puerto = PORT) {
+  const servidor = app.listen(puerto, () => {
+    soap.listen(app, "/wsdl", servicio, wsdl);
+    console.log(`Servicio SOA escuchando en ${PUBLIC_URL}/wsdl?wsdl`);
+  });
+  servidor.on("error", (error) => {
+    console.error(`[SOA] No se pudo iniciar en el puerto ${puerto}: ${error.message}`);
+    process.exit(1);
+  });
+  return servidor;
+}
+
+if (require.main === module) {
+  iniciar();
+}
+
+module.exports = { app, iniciar };

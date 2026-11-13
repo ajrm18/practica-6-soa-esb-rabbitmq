@@ -7,13 +7,24 @@ export interface Producto {
   precio: string | number;
 }
 
+export interface ProductoVista extends Producto {
+  // Precio listo para mostrar, siempre con 2 decimales (45.9 -> "45.90").
+  precioTexto: string;
+}
+
 export interface VistaProductos {
-  productos: Producto[];
+  productos: ProductoVista[];
   error?: string;
 }
 
 // Tiempo máximo de espera al SOA (holgado por el arranque en frío de Render Free).
 const SOAP_TIMEOUT_MS = 60000;
+
+export function formatearPrecio(precio: unknown): string {
+  const valor = Number(precio);
+  if (Number.isFinite(valor)) return valor.toFixed(2);
+  return typeof precio === 'string' ? precio : '';
+}
 
 @Controller()
 export class AppController {
@@ -44,9 +55,17 @@ export class AppController {
     }
   }
 
+  @Get('health')
+  health(): { status: string } {
+    return { status: 'ok' };
+  }
+
   // node-soap devuelve un objeto (no un arreglo) cuando hay un solo elemento.
-  private normalizar(productos: unknown): Producto[] {
+  private normalizar(productos: unknown): ProductoVista[] {
     if (productos === undefined || productos === null) return [];
-    return (Array.isArray(productos) ? productos : [productos]) as Producto[];
+    const lista = (
+      Array.isArray(productos) ? productos : [productos]
+    ) as Producto[];
+    return lista.map((p) => ({ ...p, precioTexto: formatearPrecio(p.precio) }));
   }
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { createClientAsync } from 'soap';
-import { AppController } from './app.controller.js';
+import { AppController, formatearPrecio } from './app.controller.js';
 
 vi.mock('soap', () => ({ createClientAsync: vi.fn() }));
 
@@ -14,6 +14,20 @@ function clienteQueDevuelve(result: unknown) {
   return cliente;
 }
 
+describe('formatearPrecio', () => {
+  it('muestra siempre 2 decimales', () => {
+    expect(formatearPrecio('45.9')).toBe('45.90');
+    expect(formatearPrecio('19.5')).toBe('19.50');
+    expect(formatearPrecio('129.99')).toBe('129.99');
+    expect(formatearPrecio(10)).toBe('10.00');
+  });
+
+  it('deja el texto original si no es un número', () => {
+    expect(formatearPrecio('N/D')).toBe('N/D');
+    expect(formatearPrecio(undefined)).toBe('');
+  });
+});
+
 describe('AppController', () => {
   let appController: AppController;
 
@@ -26,7 +40,7 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  it('devuelve los productos del servicio SOA', async () => {
+  it('devuelve los productos del servicio SOA con el precio formateado', async () => {
     const productos = [
       { id: '1', nombre: 'Teclado mecánico', precio: '45.9' },
       { id: '2', nombre: 'Mouse inalámbrico', precio: '19.5' },
@@ -34,7 +48,18 @@ describe('AppController', () => {
     ];
     const cliente = clienteQueDevuelve({ productos });
 
-    await expect(appController.index()).resolves.toEqual({ productos });
+    const vista = await appController.index();
+    expect(vista.error).toBeUndefined();
+    expect(vista.productos.map((p) => p.nombre)).toEqual([
+      'Teclado mecánico',
+      'Mouse inalámbrico',
+      'Monitor 24"',
+    ]);
+    expect(vista.productos.map((p) => p.precioTexto)).toEqual([
+      '45.90',
+      '19.50',
+      '129.99',
+    ]);
     expect(crearClienteMock).toHaveBeenCalledWith(
       'http://localhost:3000/wsdl?wsdl',
       expect.any(Object),
@@ -47,7 +72,7 @@ describe('AppController', () => {
     clienteQueDevuelve({ productos: producto });
 
     await expect(appController.index()).resolves.toEqual({
-      productos: [producto],
+      productos: [{ ...producto, precioTexto: '45.90' }],
     });
   });
 
@@ -63,5 +88,9 @@ describe('AppController', () => {
     const vista = await appController.index();
     expect(vista.productos).toEqual([]);
     expect(vista.error).toMatch(/servicio SOA/);
+  });
+
+  it('health responde ok', () => {
+    expect(appController.health()).toEqual({ status: 'ok' });
   });
 });

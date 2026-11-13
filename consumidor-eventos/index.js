@@ -68,6 +68,7 @@ async function iniciarConsumidor() {
 }
 
 const servidor = http.createServer((req, res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
   const ruta = req.url.split("?")[0];
   if (req.method === "GET" && ruta === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -83,8 +84,20 @@ const servidor = http.createServer((req, res) => {
   res.end(JSON.stringify({ error: "No encontrado" }));
 });
 
+servidor.on("error", (error) => {
+  console.error(`[Consumidor] No se pudo iniciar HTTP en el puerto ${PORT}: ${error.message}`);
+  process.exit(1);
+});
+
 servidor.listen(PORT, () => {
   console.log(`[Consumidor] HTTP en http://localhost:${PORT} (/health, /eventos)`);
+});
+
+// Render envía SIGTERM al redesplegar: se cierra el servidor y se sale limpio.
+process.on("SIGTERM", () => {
+  console.log("[Consumidor] SIGTERM recibido, cerrando...");
+  servidor.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 3000).unref();
 });
 
 iniciarConsumidor();
