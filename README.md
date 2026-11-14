@@ -52,6 +52,7 @@ Evento publicado:
 | Servicio SOA | 3000 | `PORT` | `3000` | Puerto HTTP |
 | | | `AMQP_URL` | `amqp://localhost` | URL del broker (en la nube, la URL AMQPS de CloudAMQP) |
 | | | `PUBLIC_URL` | `RENDER_EXTERNAL_URL` o `http://localhost:3000` | Base que se escribe en el `soap:address` del WSDL |
+| | | `AMQP_TIMEOUT_MS` | `5000` | Tiempo máximo para conectar con RabbitMQ antes de responder sin publicar |
 | Consumidor | 3002 | `PORT` | `3002` | `GET /health`, `GET /eventos` |
 | | | `AMQP_URL` | `amqp://localhost` | URL del broker |
 | Frontend MVC | 3001 | `PORT` | `3001` | Puerto HTTP |
@@ -63,7 +64,7 @@ La URL de CloudAMQP **no** se versiona: solo se carga como variable de entorno e
 
 ## Cómo ejecutar en local
 
-Requisitos: Node.js ≥ 20 (probado con 26.1.0), npm, Docker Desktop.
+Requisitos: Node.js ≥ 22 (Render y el CI usan Node 22; probado también con 26.1.0), npm, Docker Desktop.
 
 ```powershell
 # Terminal 1 - RabbitMQ (panel en http://localhost:15672, guest/guest)
@@ -96,9 +97,12 @@ El orden importa poco: el consumidor reintenta la conexión cada 5 s si RabbitMQ
 | Cliente SOAP de prueba | `cd soa-productos-service && npm run probar` | Los 3 productos en JSON |
 | Cola en RabbitMQ | http://localhost:15672 → Queues → `productos.consultados` | Sube *Ready* si el consumidor está detenido |
 | Consumidor | Consola: `[Consumidor] Evento recibido: {...}`; http://localhost:3002/eventos | Últimos 20 eventos |
-| Frontend | http://localhost:3001 | Lista con los 3 productos; cada recarga genera un evento |
-| Pruebas del frontend | `cd frontend-mvc && npm test && npm run test:e2e` | 4 + 3 pruebas en verde (cliente SOAP simulado) |
+| Frontend | http://localhost:3001 | Lista con los 3 productos y precios con 2 decimales ($45.90); cada recarga genera un evento |
+| Pruebas del SOA | `cd soa-productos-service && npm run lint && npm test` | 5 pruebas (`node:test`): WSDL, `soap:address`, respuesta con RabbitMQ caído, SOAP mal formado, evento |
+| Pruebas del consumidor | `cd consumidor-eventos && npm run lint && npm test` | 3 pruebas; la de broker real necesita `TEST_AMQP_URL=amqp://localhost` |
+| Pruebas del frontend | `cd frontend-mvc && npm run lint && npm run build && npm test && npm run test:e2e` | 7 + 5 pruebas en verde (cliente SOAP simulado) |
 | End-to-end | `node verificar-flujo.js` (desde la raíz) | `PASS` en los 3 puntos |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) | `npm ci`, `node -c`, lint, build y pruebas de los 3 proyectos en Node 22, y `verificar-flujo.js` con un RabbitMQ real |
 
 Contra la nube:
 
@@ -115,9 +119,11 @@ Salidas guardadas en `evidencias/verificar-flujo-local.txt` y `evidencias/verifi
 
 | Servicio | URL pública |
 |---|---|
-| Frontend MVC | _pendiente_ |
-| Servicio SOA (WSDL) | _pendiente_ |
-| Consumidor (`/eventos`) | _pendiente_ |
+| Frontend MVC | https://frontend-mvc-yku6.onrender.com |
+| Servicio SOA (WSDL) | https://soa-productos-service-iq64.onrender.com/wsdl?wsdl |
+| Consumidor (`/eventos`) | https://consumidor-eventos-mbuv.onrender.com/eventos |
+
+Los tres exponen `GET /health` (Health Check Path en Render). Con `autoDeployTrigger: checksPass`, Render solo redespliega cuando el CI de GitHub Actions termina en verde.
 
 > **Plan free de Render:** los servicios se duermen tras ~15 min sin tráfico y el primer acceso tarda de 30 s a ~1 min en despertar (si el frontend y el SOA están dormidos, se suman). Por eso el frontend espera hasta 60 s al SOA y `verificar-flujo.js` usa timeouts de 90 s con 3 reintentos y primero "despierta" los servicios con `/health`. Además, el consumidor guarda los eventos **en memoria**: al dormirse o reiniciarse, `/eventos` vuelve a cero, y mientras está dormido los eventos se acumulan en la cola de CloudAMQP y se procesan al despertar.
 
@@ -133,7 +139,8 @@ Porque el evento es parte de la operación: al publicarlo antes de responder, cu
 
 - La cola `productos.consultados` es **no durable** (como pide la guía) y los mensajes no son persistentes: si RabbitMQ se reinicia, se pierden los eventos pendientes.
 - El mini-ESB abre y cierra **una conexión AMQP por cada petición SOAP** (simple, pero costoso bajo carga).
-- Si RabbitMQ no responde (host inaccesible, no rechazado), la respuesta SOAP espera lo que tarde `amqp.connect` en fallar.
+- Si RabbitMQ no responde (host inaccesible, no rechazado), la respuesta SOAP espera como máximo `AMQP_TIMEOUT_MS` (5 s) antes de responder sin publicar.
+- Una petición SOAP con una operación que no existe devuelve la pila del error de `node-soap` (hallazgo P6-01 de la auditoría).
 - El consumidor guarda los eventos solo en memoria (últimos 20) y no hay base de datos.
 - El WSDL declara `productos` como `xsd:string` (tal como la guía), aunque se envían objetos con `id`, `nombre` y `precio`; los valores llegan al cliente como texto.
 - No hay autenticación en ningún servicio (práctica académica).
@@ -145,7 +152,8 @@ practica-6-soa-esb-rabbitmq/
 ├── soa-productos-service/   index.js, productos.wsdl, productos.js, evento-publisher.js, probar-cliente.js
 ├── consumidor-eventos/      index.js
 ├── frontend-mvc/            src/ (main.ts, app.controller.ts), views/index.hbs, public/styles.css, test/
-├── evidencias/              salidas de verificar-flujo.js
+├── evidencias/              salidas de verificar-flujo.js (local y nube)
+├── .github/workflows/ci.yml lint, build, pruebas y E2E en cada push
 ├── docker-compose.yml
 ├── render.yaml
 ├── verificar-flujo.js

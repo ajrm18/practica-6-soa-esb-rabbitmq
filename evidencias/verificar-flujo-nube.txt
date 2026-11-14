@@ -1,0 +1,13 @@
+Fecha: 2026-11-14T04:18:21.214Z
+Frontend:   https://frontend-mvc-yku6.onrender.com
+SOA:        https://soa-productos-service-iq64.onrender.com
+Consumidor: https://consumidor-eventos-mbuv.onrender.com
+
+  SOA /health -> {"status":"ok"} en 428 ms
+  Consumidor /health -> {"status":"ok","rabbitmq":"conectado"} en 217 ms
+
+PASS - 1. Leer eventos procesados por el consumidor (totalRecibidos=3)
+PASS - 2. El frontend muestra los 3 productos (precios con 2 decimales) (1058 ms)
+PASS - 3. El consumidor recibió un evento nuevo (antes=3 después=4)
+
+Resultado: PASS (3/3)
