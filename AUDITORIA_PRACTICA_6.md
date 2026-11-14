@@ -23,7 +23,7 @@ Se auditó el **último commit publicado** (`8e328b8`) sobre un **clon nuevo** d
 ### 2.2 Garantía de no modificación
 
 - Todos los comandos (`npm ci`, `node -c`, lint, build, pruebas, E2E y robustez) se ejecutaron en el clon. No se editó ningún archivo del clon; los scripts de apoyo (`robustez.sh`, `sonda.mjs`, `nube.mjs`, `returnfault.js`) se escribieron fuera del repositorio, en `tmp-auditoria-p6`.
-- Durante la auditoría, en la carpeta original solo se editó `README.md` (links públicos y tabla de pruebas, solo documentación). Ese cambio y la copia de este informe se suben en un commit posterior que **no toca código**.
+- Durante la auditoría, en la carpeta original solo se editó `README.md` (links públicos y tabla de pruebas, solo documentación). Ese cambio, la evidencia de la nube y la copia de este informe se suben en commits posteriores que **no tocan código**.
 - En Render solo se hicieron GET y dos POST SOAP inválidos al SOA, que no tienen efectos. La E2E en la nube genera, como está previsto, un evento `ProductoConsultado`.
 - RabbitMQ local se detuvo y se volvió a arrancar a propósito (prueba 1-2). No se tocó CloudAMQP.
 
@@ -261,4 +261,4 @@ La Práctica 6 está **completa y funcionando**, en local y en la nube, y cumple
 
 ## 11. Correcciones aplicadas tras la auditoría
 
-No se aplicó ninguna corrección de código tras la auditoría, porque no hubo hallazgos Críticos ni Altos. El commit posterior a `8e328b8` solo añade documentación: los links públicos en `README.md` y la copia de este informe como `AUDITORIA_PRACTICA_6.md`. P6-01 y P6-02 quedan como recomendaciones para el autor.
+No se aplicó ninguna corrección de código tras la auditoría, porque no hubo hallazgos Críticos ni Altos. Los commits posteriores a `8e328b8` (`aaf83a0` y el que corrige esta frase) solo tocan documentación: `README.md` (links públicos), `evidencias/verificar-flujo-nube.txt` y la copia de este informe como `AUDITORIA_PRACTICA_6.md` (`git diff --name-only 8e328b8 HEAD` no incluye código). P6-01 y P6-02 quedan como recomendaciones para el autor.
