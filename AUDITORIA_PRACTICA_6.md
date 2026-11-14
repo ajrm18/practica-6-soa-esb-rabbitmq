@@ -41,7 +41,7 @@ Se auditó el **último commit publicado** (`8e328b8`) sobre un **clon nuevo** d
 | 8 | GitHub: CI, anotaciones, protección de `main`, licencia, Pages | Ejecutado (API) |
 | 9 | Accesibilidad de `views/index.hbs` y `styles.css` (lang, roles, contraste calculado) | Ejecutado (revisión manual y cálculo) |
 
-Evidencias en `C:\Users\HP\Downloads\1\tmp-auditoria-p6\logs\` (`ci-local.txt`, `robustez.txt`, `e2e-local-auditoria.txt`, logs de los servicios) y en el repositorio: `evidencias/verificar-flujo-local.txt` y `evidencias/verificar-flujo-nube.txt`.
+Los archivos temporales (clon, scripts de apoyo y logs de los servicios en `C:\Users\HP\Downloads\1\tmp-auditoria-p6`) se borraron al terminar; las salidas relevantes están transcritas en las secciones 3 y 5. Evidencias permanentes en el repositorio: `evidencias/verificar-flujo-local.txt` y `evidencias/verificar-flujo-nube.txt`.
 
 ### 2.4 No aplica o no confirmado
 
