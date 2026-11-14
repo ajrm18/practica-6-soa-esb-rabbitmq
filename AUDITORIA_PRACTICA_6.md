@@ -7,25 +7,25 @@
 | Materia | Integración de Sistemas (PUCE) · Semana 5 · Reto 1 |
 | Autor | Anthony Rosero (trabajo individual) |
 | Repositorio | https://github.com/ajrm18/practica-6-soa-esb-rabbitmq (rama `main`, público, sin protección, sin licencia) |
-| Carpeta del proyecto | `C:\Users\HP\Downloads\1\practica-6-soa-esb-rabbitmq` |
+| Carpeta auditada | Clon nuevo del repositorio en `C:\Users\HP\Downloads\1\tmp-auditoria-p6\repo` (borrado al terminar). Carpeta del proyecto: `C:\Users\HP\Downloads\1\practica-6-soa-esb-rabbitmq` |
 | Estado auditado | `HEAD = 8e328b8` (`8e328b843d592e59d0b10afe0c8d7106609f0b7e`, "fix: prevenir fallos recurrentes de auditorías anteriores") = `origin/main`; 8 commits; CI `43554910772` en verde |
 | Servicios publicados | Frontend: https://frontend-mvc-yku6.onrender.com · SOA (WSDL): https://soa-productos-service-iq64.onrender.com/wsdl?wsdl · Consumidor: https://consumidor-eventos-mbuv.onrender.com/eventos (Render Free, Blueprint `render.yaml`) |
-| Broker | Local: Docker `rabbitmq-integracion` (RabbitMQ 3.13.7). Nube: CloudAMQP (URL solo como variable `AMQP_URL` en Render) |
+| Dependencia externa | RabbitMQ. Local: Docker `rabbitmq-integracion` (RabbitMQ 3.13.7). Nube: CloudAMQP (URL solo como variable `AMQP_URL` en Render) |
 | Fecha de la auditoría | 13 de noviembre de 2026 (23:30, UTC-5) |
 | Entorno | Windows 10, Node.js 26.1.0, npm 11.13.0, Docker 29.9.2; CI: `ubuntu-24.04` con Node 22. Express 5.3.0, `soap` 1.14.0, `amqplib` 2.2.0, NestJS 12.1.3, `hbs` 4.4.0 (handlebars 4.7.10), Vitest 5.1.0, TypeScript 6.0.3, oxlint 1.88.0 |
 
-## 2. Metodología
+## 2. Alcance y método
 
 ### 2.1 Objeto de la auditoría
 
-Se auditó el **último commit publicado** (`8e328b8`) sobre un **clon nuevo** del repositorio en `C:\Users\HP\Downloads\1\tmp-auditoria-p6\repo`, no la carpeta de trabajo. Ese commit ya incluye las correcciones preventivas derivadas de las auditorías de las Prácticas 1 a 5 (sección 6).
+Se auditó el **último commit publicado** (`8e328b8`) sobre un **clon nuevo** del repositorio en `C:\Users\HP\Downloads\1\tmp-auditoria-p6\repo`, no la carpeta de trabajo. Ese commit ya incluye las correcciones preventivas derivadas de las auditorías de las Prácticas 1 a 5 (sección 9).
 
 ### 2.2 Garantía de no modificación
 
 - Todos los comandos (`npm ci`, `node -c`, lint, build, pruebas, E2E y robustez) se ejecutaron en el clon. No se editó ningún archivo del clon; los scripts de apoyo (`robustez.sh`, `sonda.mjs`, `nube.mjs`, `returnfault.js`) se escribieron fuera del repositorio, en `tmp-auditoria-p6`.
 - Durante la auditoría, en la carpeta original solo se editó `README.md` (links públicos y tabla de pruebas, solo documentación). Ese cambio, la evidencia de la nube y la copia de este informe se suben en commits posteriores que **no tocan código**.
 - En Render solo se hicieron GET y dos POST SOAP inválidos al SOA, que no tienen efectos. La E2E en la nube genera, como está previsto, un evento `ProductoConsultado`.
-- RabbitMQ local se detuvo y se volvió a arrancar a propósito (prueba 1-2). No se tocó CloudAMQP.
+- RabbitMQ local se detuvo y se volvió a arrancar a propósito (pruebas de robustez 1-2). No se tocó CloudAMQP.
 
 ### 2.3 Actividades
 
@@ -41,52 +41,91 @@ Se auditó el **último commit publicado** (`8e328b8`) sobre un **clon nuevo** d
 | 8 | GitHub: CI, anotaciones, protección de `main`, licencia, Pages | Ejecutado (API) |
 | 9 | Accesibilidad de `views/index.hbs` y `styles.css` (lang, roles, contraste calculado) | Ejecutado (revisión manual y cálculo) |
 
-Los archivos temporales (clon, scripts de apoyo y logs de los servicios en `C:\Users\HP\Downloads\1\tmp-auditoria-p6`) se borraron al terminar; las salidas relevantes están transcritas en las secciones 3 y 5. Evidencias permanentes en el repositorio: `evidencias/verificar-flujo-local.txt` y `evidencias/verificar-flujo-nube.txt`.
+Evidencias: los archivos temporales (clon, scripts de apoyo y logs de los servicios en `C:\Users\HP\Downloads\1\tmp-auditoria-p6`) se borraron al terminar; las salidas relevantes están transcritas en las secciones 3 y 5. Evidencias permanentes en el repositorio: `evidencias/verificar-flujo-local.txt` y `evidencias/verificar-flujo-nube.txt`.
 
 ### 2.4 No aplica o no confirmado
 
 - **GitHub Pages**: no aplica (`has_pages: false`); son 3 servidores Node.
-- **Validación de entradas de negocio**: `ObtenerProductos` no tiene parámetros y el frontend no tiene formularios ni parámetros de ruta. Lo único que se puede alterar es el XML de la petición SOAP (prueba 3).
-- **No confirmado**: arranque en frío de Render (los servicios estaban despiertos; el README advierte de 30 s a 1 min); que Render haya esperado de verdad al CI con `autoDeployTrigger: checksPass` (el despliegue llegó después del CI en verde, pero el panel de Render no se vio); axe-core, Lighthouse y lector de pantalla (no se ejecutaron; ver la revisión manual en 7).
+- **Validación de entradas de negocio**: `ObtenerProductos` no tiene parámetros y el frontend no tiene formularios ni parámetros de ruta. Lo único que se puede alterar es el XML de la petición SOAP (prueba de robustez 3).
+- **No confirmado**: arranque en frío de Render (los servicios estaban despiertos; el README advierte de 30 s a 1 min); que Render haya esperado de verdad al CI con `autoDeployTrigger: checksPass` (el despliegue llegó después del CI en verde, pero el panel de Render no se vio); axe-core, Lighthouse y lector de pantalla (no se ejecutaron; ver la fila de accesibilidad en la sección 9).
 - El `curl` de Git Bash de este equipo no completa el handshake TLS con ningún host HTTPS (`schannel: failed to receive handshake`, también con github.com; probablemente por la inspección de Kaspersky). Todas las pruebas HTTPS se hicieron con `fetch` de Node, como `verificar-flujo.js`. No es un defecto del proyecto.
 
-## 3. Comandos ejecutados
-
-| Comando (clon `8e328b8`) | soa-productos-service | consumidor-eventos | frontend-mvc |
-|---|---|---|---|
-| `npm ci` | OK (98 paquetes) | OK (3) | OK (296) |
-| `node -c` (8 archivos `.js`) | OK | OK | n/a (TS) |
-| `npm run lint` (`--deny-warnings`) | OK | OK | OK (`--type-aware`) |
-| `npm run build` | n/a | n/a | OK |
-| `npm test` | OK 5/5 | OK 3/3 (con `TEST_AMQP_URL`) | OK 7/7 |
-| `npm run test:e2e` | n/a | n/a | OK 5/5 |
-| `npm audit --omit=dev` | 0 | 0 | 1 moderada (`hbs`, sin parche) → P6-03 |
-| `npm audit` (incl. dev) | 0 | 0 | 1 moderada (la misma) |
-| CI GitHub Actions `43554910772` (Node 22) | OK | OK | OK; job E2E con RabbitMQ OK; 0 anotaciones |
-
-| Prueba | Resultado |
-|---|---|
-| `node verificar-flujo.js` (local, clon) | **PASS 3/3** (frontend 772 ms; eventos 0 → 1) |
-| `node verificar-flujo.js` (Render) | **PASS 3/3** (frontend 1058 ms; eventos 3 → 4) |
-| Robustez 1: SOA con RabbitMQ detenido | OK: frontend 200 en 456 ms con los 3 productos; `probar-cliente` 3 productos; log `[ESB] No se pudo publicar` (mensaje vacío → P6-02) |
-| Robustez 2: reinicio de RabbitMQ | OK: el consumidor reintentó cada 5 s y se reconectó solo (61 s desde `docker start`, incluye el arranque del broker); eventos 1 → 2 |
-| Robustez 3: SOAP mal formado (texto, JSON, cuerpo vacío) | OK: HTTP 500 con `soap:Fault` "Invalid XML"; `/health` sigue en 200 |
-| Robustez 3: operación SOAP inexistente | **FALLA**: HTTP 500 con la pila de node-soap en texto plano, local y Render → P6-01 |
-| Robustez 4: puerto ocupado (3 servicios) | OK: un mensaje de una línea y código de salida 1 en los tres |
-| Robustez 5: frontend con el SOA caído | OK: 200 en 851 ms, mensaje con `role="alert"`, sin `ECONNREFUSED` en la página; `/health` 200; se recupera al volver el SOA |
-| Secretos (árbol + historial completo) | OK: 0 coincidencias |
-
-## 4. Resumen ejecutivo y conteo por severidad
-
-La práctica cumple **todos** los puntos de la guía y el flujo completo funciona en local y en la nube. Las correcciones preventivas resolvieron la mayoría de los fallos que se repetían en las Prácticas 1-5: lint roto, falta de pruebas, falta de CI, falta de health checks, falta de timeouts, cabeceras por defecto, versiones de Node desalineadas y vulnerabilidades en devDependencies. Queda un hallazgo **Medio**: una operación SOAP inexistente expone la pila del error en producción. Los demás son menores.
+## 3. Resumen por severidad
 
 | Severidad | Cantidad | Hallazgos |
 |---|---|---|
 | Crítica | 0 | - |
 | Alta | 0 | - |
 | Media | 1 | P6-01 |
-| Baja | 3 | P6-02, P6-03, P6-04 (CI/CD) |
+| Baja | 3 | P6-02 a P6-04 (P6-04 es de CI/CD) |
 | Informativa | 4 | P6-05 a P6-08 |
+
+Resultado de los comandos (Ejecutado, clon `8e328b8`):
+
+| Comando | Resultado |
+|---|---|
+| `npm ci` (3 proyectos) | Correcto: 98 paquetes (SOA), 3 (consumidor), 296 (frontend) |
+| `node -c` (8 archivos `.js` versionados) | Correcto |
+| `npm run lint` (3 proyectos, `--deny-warnings`; frontend con `--type-aware`) | Correcto (código 0, sin avisos) |
+| `npm run build` (frontend) | Correcto |
+| `npm test` (SOA) | 5 pruebas en verde |
+| `TEST_AMQP_URL=amqp://localhost npm test` (consumidor) | 3 pruebas en verde |
+| `npm test` (frontend) | 7 pruebas en verde |
+| `npm run test:e2e` (frontend) | 5 pruebas en verde |
+| `npm audit` y `npm audit --omit=dev` (SOA y consumidor) | 0 vulnerabilidades |
+| `npm audit --omit=dev` (frontend) | 1 moderada (`hbs`, sin parche) → P6-03 |
+| `node verificar-flujo.js` (local, clon) | **PASS 3/3** (frontend 772 ms; eventos 0 → 1) |
+| `node verificar-flujo.js` (Render) | **PASS 3/3** (frontend 1058 ms; eventos 3 → 4) |
+| `docker stop rabbitmq-integracion` + `GET /` del frontend + `npm run probar` | Correcto: 200 en 456 ms con los 3 productos; `probar-cliente` 3 productos; log `[ESB] No se pudo publicar` (mensaje vacío → P6-02) |
+| `docker start rabbitmq-integracion` con el consumidor corriendo | Correcto: reintentos cada 5 s y reconexión automática (61 s desde `docker start`, incluye el arranque del broker); eventos 1 → 2 |
+| `POST /wsdl` con texto, JSON o cuerpo vacío | Correcto: HTTP 500 con `soap:Fault` "Invalid XML"; `/health` sigue en 200 |
+| `POST /wsdl` con una operación inexistente | **Falla**: HTTP 500 con la pila de node-soap en texto plano, local y Render → P6-01 |
+| Segunda instancia en un puerto ocupado (3 servicios) | Correcto: un mensaje de una línea y código de salida 1 en los tres |
+| SOA detenido + `GET /` del frontend | Correcto: 200 en 851 ms, mensaje con `role="alert"`, sin `ECONNREFUSED` en la página; `/health` 200; se recupera al volver el SOA |
+| `git log -p --all` y árbol de trabajo (secretos) | Correcto: 0 coincidencias |
+
+## 4. CI/CD
+
+### 4.1 Integración continua (`.github/workflows/ci.yml`)
+
+| Aspecto | Estado | Evidencia | Hallazgo |
+|---|---|---|---|
+| Eventos | `push` y `pull_request` a `main`, `workflow_dispatch`; `concurrency` cancela las ejecuciones obsoletas | `ci.yml:3-12` | - |
+| Permisos | `contents: read` (mínimo) | `ci.yml:14-15` | Correcto |
+| Jobs | Matriz de 3 proyectos (`npm ci`, `node -c`, lint, build, `npm test`, `test:e2e`) y job `flujo` (`needs: proyectos`) que levanta los 3 servicios con un RabbitMQ real y ejecuta `verificar-flujo.js` | `ci.yml:18-55`, `:57-87` | - |
+| Entorno | `ubuntu-24.04`, Node 22 (la misma versión de Render), `actions/checkout@v5`, `actions/setup-node@v5` | `ci.yml:20`, `:38-41` | - |
+| Ejecuciones | `43554910772` (`8e328b8`): `success`, 4 jobs (25-35 s cada uno); `43557184874`: `cancelled` por `concurrency` al llegar un push más nuevo; `43557217894`: `success` | API de GitHub | - |
+| Anotaciones | 0 avisos de deprecación ni errores | `check-runs/.../annotations` de la ejecución `43554910772` | - |
+| Secretos | No usa; solo `TEST_AMQP_URL: amqp://localhost` del servicio efímero | `ci.yml:36` | P6-07 |
+| Protección de rama | `main` sin protección | `GET /branches/main → "protected": false` | P6-04 |
+
+### 4.2 Despliegue continuo (Render)
+
+| Aspecto | Qué se sabe | Evidencia |
+|---|---|---|
+| Definición | Blueprint `render.yaml`: 3 Web Services `runtime: node`, `plan: free`, uno por carpeta (`rootDir`), `NODE_VERSION=22` | `render.yaml:4-52` |
+| Build | `npm ci --omit=dev` (SOA y consumidor); `npm ci && npm run build` (frontend) | `render.yaml:10`, `:29`, `:44` |
+| Arranque | `npm start` / `node dist/main.js`; puerto de Render vía `process.env.PORT` | `render.yaml:11`, `:30`, `:45` |
+| Disparo | `autoDeployTrigger: checksPass` en los 3 servicios: Render espera al CI. El despliegue de `8e328b8` llegó después del CI en verde; el panel no se vio | `render.yaml:13`, `:32`, `:47`; Deducido |
+| Health check | `healthCheckPath: /health` en los 3; responden 200 en Render | `render.yaml:12`, `:31`, `:46`; Ejecutado |
+| Variables | `AMQP_URL` (`sync: false`) en SOA y consumidor; `PUBLIC_URL` vacía → `RENDER_EXTERNAL_URL`; `SOAP_WSDL_URL` en el frontend | `render.yaml:17-22`, `:36-37`, `:51-52`; WSDL publicado con `https://soa-productos-service-iq64.onrender.com/wsdl` |
+| Código publicado | Coincide con `8e328b8`: `/health` del frontend, CSP y cabeceras de seguridad, precios `$45.90` presentes en Render | Ejecutado |
+| Arranque en frío | No medido (servicios despiertos); el README lo advierte | Sección 2.4 |
+| Rollback | Manual desde el panel de Render (no documentado en el README) | Deducido |
+
+```mermaid
+flowchart LR
+    A[git push a main] --> B[GitHub Actions: ci.yml]
+    B --> B1["3 proyectos: npm ci, node -c, lint, build, test, test:e2e (Node 22)"]
+    B1 --> B2["flujo: 3 servicios + RabbitMQ + verificar-flujo.js"]
+    B2 -->|checks en verde| R["Render: autoDeployTrigger checksPass"]
+    R --> S[soa-productos-service]
+    R --> C[consumidor-eventos]
+    R --> F[frontend-mvc]
+    F -->|SOAP| S
+    S -->|AMQPS| Q[(CloudAMQP)]
+    Q -->|AMQPS| C
+```
 
 ## 5. Hallazgos
 
@@ -109,8 +148,7 @@ Render: HTTP 500  TypeError: Cannot read properties of undefined (reading 'descr
 XML no válido / JSON / cuerpo vacío -> HTTP 500 con soap:Fault "Invalid XML" (correcto)
 ```
 
-- **Causa**: con la configuración por defecto, cuando `node-soap` falla al interpretar un cuerpo que es XML válido pero no corresponde al WSDL, escribe `error.stack` como respuesta en lugar de un `soap:Fault`.
-- **Impacto**: cualquier cliente anónimo obtiene la versión de la librería, la estructura de carpetas del servidor (`/opt/render/project/src/...`) y la pila interna. No expone datos ni credenciales, y el proceso no se cae (`/health` sigue en 200). Pero es una fuga de información en producción (CWE-209), y además la respuesta no es un SOAP válido, así que un cliente SOAP no puede tratarla como Fault. Es la misma familia de fallo que P5-01 (errores con detalles internos).
+- **Impacto**: con la configuración por defecto, cuando `node-soap` falla al interpretar un cuerpo que es XML válido pero no corresponde al WSDL, escribe `error.stack` como respuesta en lugar de un `soap:Fault`. Así, cualquier cliente anónimo obtiene la versión de la librería, la estructura de carpetas del servidor (`/opt/render/project/src/...`) y la pila interna. No expone datos ni credenciales, y el proceso no se cae (`/health` sigue en 200). Pero es una fuga de información en producción (CWE-209), y además la respuesta no es un SOAP válido, así que un cliente SOAP no puede tratarla como Fault. Es la misma familia de fallo que P5-01 (errores con detalles internos).
 - **Pasos para reproducir**: `POST https://soa-productos-service-iq64.onrender.com/wsdl` con `Content-Type: text/xml` y el sobre anterior.
 - **Recomendación** (verificada aparte con las mismas versiones, sin tocar el repositorio: devuelve `soap:Fault` con `Could not find message OperacionInexistente` y sin pila):
 
@@ -133,8 +171,8 @@ Añadir el caso a `test/soa.test.js` (por ejemplo, `assert.doesNotMatch(cuerpo, 
 amqp.connect('amqp://localhost:1') -> name=AggregateError msg="" code=ECONNREFUSED errors=[ECONNREFUSED, ECONNREFUSED]
 ```
 
-- **Causa**: `localhost` resuelve a `::1` y a `127.0.0.1`. Node prueba ambas direcciones y rechaza con un `AggregateError` cuyo `message` está vacío; el código solo registra `error.message`.
-- **Impacto**: el aviso de que se perdió un evento aparece en el log sin decir por qué. En Render (`amqps://` con un único host) el mensaje sí trae texto, por lo que afecta sobre todo al diagnóstico local.
+- **Impacto**: `localhost` resuelve a `::1` y a `127.0.0.1`. Node prueba ambas direcciones y rechaza con un `AggregateError` cuyo `message` está vacío, y el código solo registra `error.message`. Por eso el aviso de que se perdió un evento aparece en el log sin decir por qué. En Render (`amqps://` con un único host) el mensaje sí trae texto, así que afecta sobre todo al diagnóstico local.
+- **Pasos para reproducir**: con los 3 servicios en local, `docker stop rabbitmq-integracion`, abrir http://localhost:3001 y leer la salida del SOA.
 - **Recomendación**: `console.error("[ESB] No se pudo publicar el evento:", error.message || error.code || error.errors?.map((e) => e.code).join(", "))`.
 
 #### P6-03 - `hbs` tiene un aviso de seguridad sin versión corregida
@@ -143,6 +181,7 @@ amqp.connect('amqp://localhost:1') -> name=AggregateError msg="" code=ECONNREFUS
 - **Tipo de verificación**: Ejecutado (`npm audit --omit=dev`) y Deducido (explotabilidad).
 - **Evidencia**: `hbs * Severity: moderate ... GHSA-7f5c-rpf4-86p8 ... No fix available`. Los avisos críticos de `handlebars` que aparecían antes quedaron resueltos al actualizar a 4.7.10.
 - **Impacto**: el aviso afecta a aplicaciones que pasan a `res.render` objetos controlados por el usuario (opciones como `layout`). Aquí el controlador solo devuelve `{ productos, error }`, construido en el servidor (`frontend-mvc/src/app.controller.ts:35-56`), así que no es explotable en esta práctica. Aun así, `npm audit` no queda en cero, y `hbs` lo exige la guía.
+- **Pasos para reproducir**: `cd frontend-mvc && npm audit --omit=dev`.
 - **Recomendación**: mantener `hbs` (lo pide la guía), no pasar nunca `req.query` ni `req.body` a la vista, y revisar el aviso cuando salga una versión corregida. Documentarlo en el README.
 
 #### P6-04 - `main` sin protección: el CI no impide un push directo con fallos (CI/CD)
@@ -150,6 +189,7 @@ amqp.connect('amqp://localhost:1') -> name=AggregateError msg="" code=ECONNREFUS
 - **Archivo y línea**: configuración del repositorio (`GET /repos/.../branches/main` → `"protected": false`)
 - **Tipo de verificación**: Ejecutado (API de GitHub).
 - **Impacto**: con `autoDeployTrigger: checksPass` (`render.yaml:13`, `:32`, `:47`), Render no debería desplegar un commit con el CI en rojo. Aun así, ese commit queda en `main` y el repositorio entregado tendría un estado roto. Es el resto de P3-07.
+- **Pasos para reproducir**: `gh api repos/ajrm18/practica-6-soa-esb-rabbitmq/branches/main --jq .protected` → `false`.
 - **Recomendación**: en GitHub, **Settings → Branches → Add rule** para `main` con "Require status checks to pass" (los 4 jobs de `CI`). Es opcional en un trabajo individual.
 
 ### Severidad Informativa
@@ -175,34 +215,16 @@ amqp.connect('amqp://localhost:1') -> name=AggregateError msg="" code=ECONNREFUS
 - **Tipo de verificación**: Ejecutado (`license: null`).
 - **Observación**: los `package.json` declaran `ISC` y `UNLICENSED`, pero el repositorio no tiene archivo `LICENSE`. Es irrelevante para la entrega; sin licencia, el código es "todos los derechos reservados".
 
-## 6. Fallos recurrentes de auditorías anteriores
+## 6. Qué se comprobó sin encontrar problemas
 
-Se leyeron `Auditoria_Practica1.md` a `Auditoria_Practica5.md` (carpeta `au`) y se revisó la Práctica 6 contra cada fallo que apareció en más de una práctica o que era aplicable. Las prevenciones entraron en el commit `8e328b8`, antes de esta auditoría.
-
-| Fallo recurrente | Apareció en | Estado en la Práctica 6 | Evidencia |
-|---|---|---|---|
-| `npm run lint` falla por la promesa sin manejar de `bootstrap()` | P1-04, P2 (tabla), P3-03, P4-09 | Prevenido | `frontend-mvc/src/main.ts:21-27` (`try { await bootstrap() } catch`); lint con `--deny-warnings` en los 3 proyectos (`*/package.json`) → OK |
-| Sin pruebas, pruebas de plantilla o `--passWithNoTests` | P1-08, P2-06, P3-03, P4-02, P5-05 | Prevenido | `soa-productos-service/test/soa.test.js` (5), `consumidor-eventos/test/consumidor.test.js` (3), `frontend-mvc/src/app.controller.spec.ts` (7), `test/app.e2e-spec.ts` (5); sin `--passWithNoTests` |
-| CI inexistente o que no ejecuta lint ni pruebas; publica sin verificar | P3-03, P4-03, P5-05 | Prevenido | `.github/workflows/ci.yml:44-55` (npm ci, node -c, lint, build, test, test:e2e) y `:57-87` (E2E con RabbitMQ); ejecución `43554910772` en verde |
-| Render despliega aunque el CI falle; `main` sin protección | P3-07, P5-05 | Prevenido en parte | `render.yaml:13,32,47` `autoDeployTrigger: checksPass`; `main` sigue sin protección → P6-04 |
-| Dependencias no declaradas ocultas por el `node_modules` de `Downloads\1`; `npm ci` limpio roto | P2-09 (y commit `2c37313` de P2) | Prevenido | `npm ci` en clon limpio OK; las 11 dependencias resuelven dentro de su proyecto (`require.resolve` → "propio"); CI en `ubuntu-24.04` sin carpeta padre |
-| Entradas inválidas que provocan 500 | P1-01, P2-01..03, P3-01/02, P4-04/05, P5-07 | No aplica (sin parámetros) / XML mal formado → Fault | Robustez 3: XML, JSON y vacío → `soap:Fault`; la operación inexistente expone la pila → P6-01 |
-| Errores que filtran detalles internos (pila, rutas) | P5-01, P3-17 | **No prevenido en un caso** | Frontend: sin `ECONNREFUSED` en la página (robustez 5, `app.controller.ts:47-55`); SOA: operación inexistente → P6-01 |
-| Sin timeout hacia la dependencia: peticiones colgadas | P5-02 | Prevenido | `evento-publisher.js:9-12` (`timeout: 5000` en `amqp.connect`); `app.controller.ts:21` (60 s al SOA) |
-| Un fallo del backend tumba el servicio o la página da 500 | P4-01, P3-06 | Prevenido | Robustez 1 (SOA responde sin RabbitMQ), 2 (el consumidor se reconecta) y 5 (frontend 200 con el SOA caído) |
-| Sin endpoint de salud ni `healthCheckPath` | P3-06, P4-11, P5-08 | Prevenido | `GET /health` en `soa-productos-service/index.js:50`, `consumidor-eventos/index.js:73`, `frontend-mvc/src/app.controller.ts:58`; `render.yaml:12,31,46` |
-| `X-Powered-By: Express` y sin cabeceras de seguridad | P3-15, P4-14, P5-10 | Prevenido | `index.js:42-48`, `consumidor-eventos/index.js:71`, `configurar-app.ts:7-17` (CSP); Render: `x-powered-by=null`, `nosniff`, CSP presente |
-| Endpoint de plantilla "Hello World!" | P1-06, P5-10 | Prevenido | `app.controller.ts` solo tiene `GET /` y `GET /health`; no hay `AppService` |
-| Puerto ocupado: rechazo sin manejar o pila completa | P4-09, P5-15 | Prevenido | `index.js:59-62`, `consumidor-eventos/index.js:87-90`, `main.ts:23-27`; robustez 4: una línea y código 1 en los tres |
-| Versiones de Node desalineadas, sin `engines`, `npm install` en el build | P3-08, P5-09 | Prevenido | `engines >=22` en los 3 `package.json`; `NODE_VERSION=22` en `render.yaml`; CI `node-version: "22"`; `buildCommand` con `npm ci` |
-| Acciones de GitHub deprecadas y `ubuntu-latest` | P3-16, P4-13 | Prevenido | `ci.yml:20,38-39` (`ubuntu-24.04`, `checkout@v5`, `setup-node@v5`); 0 anotaciones en la ejecución |
-| Vulnerabilidades por devDependencies sin uso (`@nestjs/mau`) | P5-14, P4-18 | Prevenido | `@nestjs/mau`, el script `deploy` y `vite-tsconfig-paths` retirados; Vitest 5.1.0; `npm audit` → solo `hbs` (P6-03) |
-| Secretos o credenciales en el código; URLs fijas | P5-06 (y P1-10, P3-18 como control) | Prevenido | `AMQP_URL`, `PUBLIC_URL`, `SOAP_WSDL_URL` por variable (`render.yaml`, `sync: false`); P6-07 |
-| Configuración insegura en producción (`synchronize`, playground) | P3-04, P5-04 | No aplica | Sin base de datos ni explorador; el WSDL público es el contrato que pide la guía |
-| Accesibilidad (contraste, estados no anunciados, `lang`) | P1-03, P4-08 | Prevenido (revisión manual) | `index.hbs:2` `lang="es"`, `:16` `role="alert"`; contraste #000/#fff 21:1 y #444/#fff 9,7:1; `<main>`; sin imágenes |
-| Favicon inexistente (404 en cada visita) | P4-14 | Prevenido | `index.hbs:7` `<link rel="icon" href="data:,">` |
-| Documentación desactualizada o con marcadores | P1-07, P3-09, P4-06, P5-11 | Prevenido | README con los 3 links, Node 22, tabla de pruebas y CI; queda solo el campo manual de `DECLARACION_IA.md` (lo completa el autor) |
-| Logs de error ruidosos o poco útiles | P3-17, P5-08 | Prevenido en parte | Errores en una línea en los 3 servicios; mensaje vacío con `AggregateError` → P6-02 |
+- **Flujo completo** Frontend → SOAP → SOA → mini-ESB → RabbitMQ → consumidor, en local y en Render (PASS 3/3 en ambos); cada carga del frontend genera exactamente un evento.
+- **Precios con 2 decimales**: `$45.90`, `$19.50`, `$129.99` en local y en Render; `formatearPrecio` probado con enteros, decimales y textos no numéricos.
+- **Contrato**: el WSDL publicado declara `ObtenerProductos` y un `soap:address` público; una petición SOAP válida devuelve los 3 productos.
+- **Resiliencia**: el SOA responde sin broker (456 ms vía frontend); el consumidor se reconecta solo y sigue procesando; el frontend muestra un mensaje accesible si el SOA no responde y se recupera solo; XML no válido → Fault sin caer.
+- **Arranque**: el puerto ocupado se informa en una línea y con código 1 en los tres servicios; el consumidor cierra limpio con SIGTERM.
+- **Calidad**: lint estricto, build, 20 pruebas automatizadas y E2E con RabbitMQ real en el CI de Node 22; `npm audit` en 0 en el SOA y el consumidor.
+- **Seguridad básica**: sin `X-Powered-By`; `nosniff`, `X-Frame-Options` y CSP en el frontend; plantillas Handlebars con escape (`Monitor 24&quot;`); sin secretos en el historial.
+- **Despliegue**: el código de Render coincide con `8e328b8` (rutas `/health` nuevas, cabeceras y precios presentes); `npm ci` en el build.
 
 ## 7. Checklist de salida de la guía
 
@@ -233,18 +255,7 @@ Se leyeron `Auditoria_Practica1.md` a `Auditoria_Practica5.md` (carpeta `au`) y 
 | 23 | `DECLARACION_IA.md` con Herramienta, Nivel de uso, Qué se le pidió, Qué se modificó/verificó manualmente | Cumple; **último campo pendiente del autor** | `DECLARACION_IA.md` (fila final en blanco a propósito) |
 | 24 | `AUDITORIA_PRACTICA_6.md` | Cumple | Este informe (copia idéntica en el repositorio) |
 
-## 8. Qué funciona (comprobado sin problemas)
-
-- **Flujo completo** Frontend → SOAP → SOA → mini-ESB → RabbitMQ → consumidor, en local y en Render (PASS 3/3 en ambos); cada carga del frontend genera exactamente un evento.
-- **Precios con 2 decimales**: `$45.90`, `$19.50`, `$129.99` en local y en Render; `formatearPrecio` probado con enteros, decimales y textos no numéricos.
-- **Contrato**: el WSDL publicado declara `ObtenerProductos` y un `soap:address` público; una petición SOAP válida devuelve los 3 productos.
-- **Resiliencia**: el SOA responde sin broker (456 ms vía frontend); el consumidor se reconecta solo y sigue procesando; el frontend muestra un mensaje accesible si el SOA no responde y se recupera solo; XML no válido → Fault sin caer.
-- **Arranque**: el puerto ocupado se informa en una línea y con código 1 en los tres servicios; el consumidor cierra limpio con SIGTERM.
-- **Calidad**: lint estricto, build, 20 pruebas automatizadas y E2E con RabbitMQ real en el CI de Node 22; `npm audit` en 0 en el SOA y el consumidor.
-- **Seguridad básica**: sin `X-Powered-By`; `nosniff`, `X-Frame-Options` y CSP en el frontend; plantillas Handlebars con escape (`Monitor 24&quot;`); sin secretos en el historial.
-- **Despliegue**: el código de Render coincide con `8e328b8` (rutas `/health` nuevas, cabeceras y precios presentes); `npm ci` en el build.
-
-## 9. Pruebas a repetir
+## 8. Pruebas a repetir
 
 | Cuándo | Prueba |
 |---|---|
@@ -255,10 +266,37 @@ Se leyeron `Auditoria_Practica1.md` a `Auditoria_Practica5.md` (carpeta `au`) y 
 | Si se actualiza `hbs` | `npm audit --omit=dev` en `frontend-mvc` |
 | Opcional | axe-core / Lighthouse sobre https://frontend-mvc-yku6.onrender.com y navegación con lector de pantalla |
 
+## 9. Fallos recurrentes de auditorías anteriores
+
+Se leyeron `Auditoria_Practica1.md` a `Auditoria_Practica5.md` (carpeta `au`) y se revisó la Práctica 6 contra cada fallo que apareció en más de una práctica o que era aplicable. Las prevenciones entraron en el commit `8e328b8`, antes de esta auditoría.
+
+| Fallo recurrente | Apareció en | Estado en la Práctica 6 | Evidencia |
+|---|---|---|---|
+| `npm run lint` falla por la promesa sin manejar de `bootstrap()` | P1-04, P2 (tabla), P3-03, P4-09 | Prevenido | `frontend-mvc/src/main.ts:21-27` (`try { await bootstrap() } catch`); lint con `--deny-warnings` en los 3 proyectos (`*/package.json`) → OK |
+| Sin pruebas, pruebas de plantilla o `--passWithNoTests` | P1-08, P2-06, P3-03, P4-02, P5-05 | Prevenido | `soa-productos-service/test/soa.test.js` (5), `consumidor-eventos/test/consumidor.test.js` (3), `frontend-mvc/src/app.controller.spec.ts` (7), `test/app.e2e-spec.ts` (5); sin `--passWithNoTests` |
+| CI inexistente o que no ejecuta lint ni pruebas; publica sin verificar | P3-03, P4-03, P5-05 | Prevenido | `.github/workflows/ci.yml:44-55` (npm ci, node -c, lint, build, test, test:e2e) y `:57-87` (E2E con RabbitMQ); ejecución `43554910772` en verde |
+| Render despliega aunque el CI falle; `main` sin protección | P3-07, P5-05 | Prevenido en parte | `render.yaml:13,32,47` `autoDeployTrigger: checksPass`; `main` sigue sin protección → P6-04 |
+| Dependencias no declaradas ocultas por el `node_modules` de `Downloads\1`; `npm ci` limpio roto | P2-09 (y commit `2c37313` de P2) | Prevenido | `npm ci` en clon limpio OK; las 11 dependencias resuelven dentro de su proyecto (`require.resolve` → "propio"); CI en `ubuntu-24.04` sin carpeta padre |
+| Entradas inválidas que provocan 500 | P1-01, P2-01..03, P3-01/02, P4-04/05, P5-07 | No aplica (sin parámetros) / XML mal formado → Fault | Robustez 3: XML, JSON y vacío → `soap:Fault`; la operación inexistente expone la pila → P6-01 |
+| Errores que filtran detalles internos (pila, rutas) | P5-01, P3-17 | **No prevenido en un caso** | Frontend: sin `ECONNREFUSED` en la página (robustez 5, `app.controller.ts:47-55`); SOA: operación inexistente → P6-01 |
+| Sin timeout hacia la dependencia: peticiones colgadas | P5-02 | Prevenido | `evento-publisher.js:9-12` (`timeout: 5000` en `amqp.connect`); `app.controller.ts:21` (60 s al SOA) |
+| Un fallo del backend tumba el servicio o la página da 500 | P4-01, P3-06 | Prevenido | Robustez 1 (SOA responde sin RabbitMQ), 2 (el consumidor se reconecta) y 5 (frontend 200 con el SOA caído) |
+| Sin endpoint de salud ni `healthCheckPath` | P3-06, P4-11, P5-08 | Prevenido | `GET /health` en `soa-productos-service/index.js:50`, `consumidor-eventos/index.js:73`, `frontend-mvc/src/app.controller.ts:58`; `render.yaml:12,31,46` |
+| `X-Powered-By: Express` y sin cabeceras de seguridad | P3-15, P4-14, P5-10 | Prevenido | `index.js:42-48`, `consumidor-eventos/index.js:71`, `configurar-app.ts:7-17` (CSP); Render: `x-powered-by=null`, `nosniff`, CSP presente |
+| Endpoint de plantilla "Hello World!" | P1-06, P5-10 | Prevenido | `app.controller.ts` solo tiene `GET /` y `GET /health`; no hay `AppService` |
+| Puerto ocupado: rechazo sin manejar o pila completa | P4-09, P5-15 | Prevenido | `index.js:59-62`, `consumidor-eventos/index.js:87-90`, `main.ts:23-27`; robustez 4: una línea y código 1 en los tres |
+| Versiones de Node desalineadas, sin `engines`, `npm install` en el build | P3-08, P5-09 | Prevenido | `engines >=22` en los 3 `package.json`; `NODE_VERSION=22` en `render.yaml`; CI `node-version: "22"`; `buildCommand` con `npm ci` |
+| Acciones de GitHub deprecadas y `ubuntu-latest` | P3-16, P4-13 | Prevenido | `ci.yml:20,38-39` (`ubuntu-24.04`, `checkout@v5`, `setup-node@v5`); 0 anotaciones en la ejecución |
+| Vulnerabilidades por devDependencies sin uso (`@nestjs/mau`) | P5-14, P4-18 | Prevenido | `@nestjs/mau`, el script `deploy` y `vite-tsconfig-paths` retirados; Vitest 5.1.0; `npm audit` → solo `hbs` (P6-03) |
+| Secretos o credenciales en el código; URLs fijas | P5-06 (y P1-10, P3-18 como control) | Prevenido | `AMQP_URL`, `PUBLIC_URL`, `SOAP_WSDL_URL` por variable (`render.yaml`, `sync: false`); P6-07 |
+| Configuración insegura en producción (`synchronize`, playground) | P3-04, P5-04 | No aplica | Sin base de datos ni explorador; el WSDL público es el contrato que pide la guía |
+| Accesibilidad (contraste, estados no anunciados, `lang`) | P1-03, P4-08 | Prevenido (revisión manual) | `index.hbs:2` `lang="es"`, `:16` `role="alert"`; contraste #000/#fff 21:1 y #444/#fff 9,7:1; `<main>`; sin imágenes |
+| Favicon inexistente (404 en cada visita) | P4-14 | Prevenido | `index.hbs:7` `<link rel="icon" href="data:,">` |
+| Documentación desactualizada o con marcadores | P1-07, P3-09, P4-06, P5-11 | Prevenido | README con los 3 links, Node 22, tabla de pruebas y CI; queda solo el campo manual de `DECLARACION_IA.md` (lo completa el autor) |
+| Logs de error ruidosos o poco útiles | P3-17, P5-08 | Prevenido en parte | Errores en una línea en los 3 servicios; mensaje vacío con `AggregateError` → P6-02 |
+
 ## 10. Conclusiones
 
 La Práctica 6 está **completa y funcionando**, en local y en la nube, y cumple los 24 puntos de la guía. Es la primera de la serie que llega a la auditoría con lint, build, pruebas reales, CI con prueba end-to-end y health checks en todos los servicios, y en la que ninguna entrada provoca la caída de un servicio. Solo queda un hallazgo de severidad Media: la fuga de la pila de node-soap ante una operación SOAP inexistente (P6-01). Tiene una corrección de una línea, ya verificada. No hay hallazgos Críticos ni Altos.
 
-## 11. Correcciones aplicadas tras la auditoría
-
-No se aplicó ninguna corrección de código tras la auditoría, porque no hubo hallazgos Críticos ni Altos. Los commits posteriores a `8e328b8` (`aaf83a0` y el que corrige esta frase) solo tocan documentación: `README.md` (links públicos), `evidencias/verificar-flujo-nube.txt` y la copia de este informe como `AUDITORIA_PRACTICA_6.md` (`git diff --name-only 8e328b8 HEAD` no incluye código). P6-01 y P6-02 quedan como recomendaciones para el autor.
+No se aplicó ninguna corrección de código tras la auditoría, porque no hubo hallazgos Críticos ni Altos. Los commits posteriores a `8e328b8` solo tocan documentación: `git diff --name-only 8e328b8 HEAD` lista únicamente `AUDITORIA_PRACTICA_6.md`, `README.md` y `evidencias/verificar-flujo-nube.txt`. P6-01 a P6-08 quedan abiertos como recomendaciones para el autor.
